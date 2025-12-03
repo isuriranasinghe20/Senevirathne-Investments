@@ -2,15 +2,17 @@
 const dotenv = require('dotenv');
 const express = require('express');
 const mongoose = require('mongoose');
+const router = require('./Routes/UserRoutes');
 
 //loads whats inside on .env file
 dotenv.config();
 const app = express();
 
 //Middleware
-app.use("/", (req, res, next) => {
-    res.send("It is working");
-})
+app.use(express.json());          
+app.use(express.urlencoded({ extended: true }));
+app.use("/users", router);
+
 
 //link to connect backend with mongoDB
 const connectionString = process.env.MONGO_URI;
