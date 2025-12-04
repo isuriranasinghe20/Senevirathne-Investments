@@ -23,6 +23,76 @@ function Activity() {
   return sum + (Number(a.paidAmount) || 0);
   }, 0);
 
+  //receipt printing function
+  const handlePrintReceipt = (row) => {
+  const receiptWindow = window.open("", "PRINT", "width=300,height=600");
+
+  const customerTypeText =
+    user.customerType === "INSTALLMENT"
+      ? "Installment"
+      : "Interest";
+
+  const generatedDateTime = new Date().toLocaleString("en-LK", {
+    timeZone: "Asia/Colombo",
+  });
+
+  receiptWindow.document.write(`
+    <html>
+      <head>
+        <style>
+          body { 
+            font-family: Arial; 
+            width: 58mm; 
+            padding: 10px;
+            font-size: 12px;
+          }
+          h2, h3, p {
+            margin: 5px 0;
+            text-align: center;
+          }
+          .footer {
+            margin-top: 15px;
+            text-align: center;
+            border-top: 1px dashed #000;
+            padding-top: 10px;
+            font-size: 11px;
+          }
+        </style>
+      </head>
+      <body>
+        <h2><strong>Senevirathne Investments</strong></h2>
+        <hr />
+
+        <p><strong>Name:</strong> ${user.name}</p>
+        <p><strong>Vehicle:</strong> ${user.vehicleNumber}</p>
+        
+        <p>
+          <strong>Paid Amount:</strong> Rs.${row.paidAmount} <br />
+          (${customerTypeText})
+        </p>
+
+        <p><strong>Paid Date:</strong> ${row.date.substring(0, 10)}</p>
+
+        <div class="footer">
+        <br /><br />
+          ...................................................
+          <br /><br />
+          Thank you for your payment!<br />
+          Call: 077-7860211
+           <br/>
+          <p style="font-size:10px;">Receipt Generated: ${generatedDateTime}</p>
+        </div>
+
+      </body>
+    </html>
+  `);
+
+  receiptWindow.document.close();
+  receiptWindow.focus();
+  receiptWindow.print();
+  receiptWindow.close();
+};
+
 
   // Fetch user details
   useEffect(() => {
@@ -202,6 +272,10 @@ function Activity() {
           style={{ marginLeft: "10px" }}
         >
           Delete
+        </button>
+
+        <button onClick={() => handlePrintReceipt(a)} style={{ marginLeft: "10px" }}>
+          Print Receipt
         </button>
       </td>
     </tr>

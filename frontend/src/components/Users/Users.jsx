@@ -19,6 +19,76 @@ function Users() {
   fetchHandler().then((data) => 
     setUsers(data.users));
   },[]);
+
+  const handlePrintReceipt = (user) => {
+  const receiptWindow = window.open("", "PRINT", "width=300,height=600");
+
+  const customerTypeText =
+    user.customerType === "INSTALLMENT"
+      ? "Installment Payer"
+      : "Interest Payer";
+
+  // Generate receipt timestamp
+  const generatedDateTime = new Date().toLocaleString("en-LK", {
+    timeZone: "Asia/Colombo",
+  });
+
+  receiptWindow.document.write(`
+    <html>
+      <head>
+        <style>
+          body { 
+            font-family: Arial; 
+            width: 58mm; 
+            padding: 10px;
+            font-size: 12px;
+            align-items: center;
+          }
+          h2 ,h3, p {
+            text-align: center;
+            margin: 0;
+            padding: 0;
+          }
+          .footer {
+            margin-top: 15px;
+            text-align: center;
+            border-top: 1px dashed #000;
+            padding-top: 10px;
+            font-size: 11px;
+          }
+        </style>
+      </head>
+
+      <body>
+        <h2><strong>Senevirathne Investments</strong></h2>
+        <hr />
+
+        <p><strong>Name:</strong> ${user.name}</p>
+        <p><strong>Vehicle No:</strong> ${user.vehicleNumber}</p>
+        <p><strong>Loan received:</strong> Rs. ${user.total}</p>
+        <p><strong>Received Date:</strong> ${new Date(user.date).toLocaleDateString()}</p>
+
+        <div class="footer">
+          <br />
+          <p>Received By : ........................................</p>
+          <br />
+          <p>Paid By     : ................................................</p>
+          <br />
+          Thank you!<br/>
+          Call: 077-7860211
+          <br/><br/>
+          <p style="font-size:10px;">Receipt Generated: ${generatedDateTime}</p>
+        </div>
+      </body>
+    </html>
+  `);
+
+  receiptWindow.document.close();
+  receiptWindow.focus();
+  receiptWindow.print();
+  receiptWindow.close();
+};
+
   
   return (
      <div>
@@ -60,6 +130,13 @@ function Users() {
                   onClick={() => navigate(`/activity/${user._id}`)} 
                   style={{ marginLeft: "10px" }} >
                   Activity
+                </button>
+
+                <button 
+                  onClick={() => handlePrintReceipt(user)}
+                   style={{ marginLeft: "10px" }}
+                >
+                  Print Receipt
                 </button>
               </td>
             </tr>
