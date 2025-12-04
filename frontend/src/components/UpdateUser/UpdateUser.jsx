@@ -16,7 +16,8 @@ function UpdateUser() {
         licenseDate:"",
         total:"",
         installment:"",
-        period:""
+        period:"",
+        customerType: "" 
     });
     const history = useNavigate();
     const id = useParams().id;
@@ -44,6 +45,7 @@ function UpdateUser() {
             total: Number(inputs.total),
             installment: Number(inputs.installment),
             period: Number(inputs.period),
+            customerType: inputs.customerType
         }).then(res => res.data);
     }
 
@@ -58,7 +60,7 @@ function UpdateUser() {
         e.preventDefault();
         console.log(inputs);
         sendRequest().then(() => 
-        history("/users"));
+        history("/user/"+id));
     };
 
 
@@ -93,12 +95,33 @@ function UpdateUser() {
         <label>Total</label>
         <input type="number" name="total" onChange={handleChange} value={inputs.total} required></input>
         <br />
-        <label>Installment</label>
+        <label>Monthly Installment</label>
         <input type="number" name="installment" onChange={handleChange} value={inputs.installment} required></input>
         <br />
         <label>Period</label>
         <input type="number" name="period" onChange={handleChange} value={inputs.period} required></input>
         <br />
+         <label>Customer Type</label><br />
+
+                <input
+                    type="radio"
+                    name="customerType"
+                    value="INSTALLMENT"
+                    checked={inputs.customerType === "INSTALLMENT"}
+                    onChange={handleChange}
+                /> Installment Customer
+
+                <input
+                    type="radio"
+                    name="customerType"
+                    value="INTEREST_ONLY"
+                    checked={inputs.customerType === "INTEREST_ONLY"}
+                    onChange={handleChange}
+                    style={{ marginLeft: "20px" }}
+                /> Interest-Only Customer
+
+                <br /><br />
+
         
         <button type="submit">Submit</button>  
         </form>

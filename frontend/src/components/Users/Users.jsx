@@ -32,12 +32,42 @@ function Users() {
         Add User
       </button>
 
-      <div> 
-        {users && users.map((user, i) => ( 
-          <div key={i}> <User user={user} /> 
-          </div> 
-        ))} 
-      </div>
+       {/* TABLE OF USERS */}
+      <table border="1" cellPadding="10" style={{ width: "90%", margin: "auto" }}>
+        <thead>
+          <tr>
+            <th>Index No</th>
+            <th>NIC</th>
+            <th>Name</th>
+            <th>Vehicle No</th>
+            <th>Customer Type</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {users && users.map((user) => (
+            <tr key={user._id}>
+              <td>{user.indexNo}</td>
+              <td>{user.nic}</td>
+              <td>{user.name}</td>
+              <td>{user.vehicleNumber}</td>
+              <td>{user.customerType}</td>
+              <td>
+                <button onClick={() => navigate(`/user/${user._id}`)}>
+                  View More
+                </button>
+                <button 
+                  onClick={() => navigate(`/activity/${user._id}`)} 
+                  style={{ marginLeft: "10px" }} >
+                  Activity
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      
     </div>
   );
 }

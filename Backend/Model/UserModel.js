@@ -52,7 +52,12 @@ const userSchema = new Schema({
     period:{
         type: Number,
         required: true,
-    }
+    },
+    customerType: {
+    type: String,
+    enum: ["INSTALLMENT", "INTEREST_ONLY"],
+    required: true,
+}
 
 });
 
