@@ -17,10 +17,16 @@ function Nav() {
             </Link>
         </li>
         <li className="home-li">
+            <Link to="/users" className="active home-a">
+                <h1>Users</h1>
+            </Link>
+        </li>
+        <li className="home-li">
             <Link to="/aboutus" className="active home-a">
                 <h1>About Us</h1>
             </Link>
         </li>
+        
       </ul>
     </div>
   )
