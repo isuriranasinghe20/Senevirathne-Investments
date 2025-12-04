@@ -57,7 +57,12 @@ const userSchema = new Schema({
     type: String,
     enum: ["INSTALLMENT", "INTEREST_ONLY"],
     required: true,
-}
+    },
+    status: {                
+    type: String,
+    enum: ["Reliable", "Moderate", "High Risk"],
+    default: "Moderate"
+  }
 
 });
 

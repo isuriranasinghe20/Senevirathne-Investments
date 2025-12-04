@@ -24,13 +24,13 @@ const getAllUsers = async (req, res) => {
 //data insert all users
 const addUsers = async (req, res) => {
 
-    const { indexNo, nic, name, phone, date, vehicleNumber, model, licenseDate, total, installment,period,customerType } = req.body;
+    const { indexNo, nic, name, phone, date, vehicleNumber, model, licenseDate, total, installment,period,customerType, status } = req.body;
 
     let users;
     const id = Date.now().toString() + Math.random().toString();
 
     try{
-        users = new User({id, indexNo, nic, name, phone, date, vehicleNumber, model, licenseDate, total, installment,period,customerType});
+        users = new User({id, indexNo, nic, name, phone, date, vehicleNumber, model, licenseDate, total, installment,period,customerType, status});
         await users.save();
     }catch(err){
         console.log(err);
@@ -69,12 +69,12 @@ const getById = async (req, res) => {
 const updateUser = async (req, res, next) => {
 
     const id = req.params.id;
-    const { indexNo, nic, name, phone, date, vehicleNumber, model, licenseDate, total, installment,period,customerType } = req.body;
+    const { indexNo, nic, name, phone, date, vehicleNumber, model, licenseDate, total, installment,period,customerType, status } = req.body;
 
     let users;
 
     try{
-        users = await User.findByIdAndUpdate(id, {indexNo: indexNo, nic: nic, phone: phone, date: date, vehicleNumber: vehicleNumber, model: model, licenseDate: licenseDate, total: total, installment: installment,period: period, name: name, customerType: customerType});
+        users = await User.findByIdAndUpdate(id, {indexNo: indexNo, nic: nic, phone: phone, date: date, vehicleNumber: vehicleNumber, model: model, licenseDate: licenseDate, total: total, installment: installment,period: period, name: name, customerType: customerType, status: status});
         users = await users.save();
     }catch(err){
         console.log(err);

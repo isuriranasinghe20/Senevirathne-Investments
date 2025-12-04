@@ -8,17 +8,17 @@ function Nav() {
       <ul className="home-ul">
         <li className="home-li">
             <Link to="/mainhome" className="active home-a">
-                <h1>Home</h1>
+                <h1>Log out</h1>
             </Link>
         </li>
         <li className="home-li">
             <Link to="/customerdetails" className="active home-a">
-                <h1>Customer Details</h1>
+                <h1>Dashboard</h1>
             </Link>
         </li>
         <li className="home-li">
             <Link to="/users" className="active home-a">
-                <h1>Users</h1>
+                <h1>Customers</h1>
             </Link>
         </li>
         <li className="home-li">

@@ -10,6 +10,7 @@ const app = express();
 const cors = require('cors');
 
 const router = require("./Routes/UserRoutes");
+const activityRoutes = require("./Routes/activityRoutes");
 
 
 //Middleware
@@ -17,6 +18,7 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use("/users", router);
+app.use(activityRoutes);
 
 //link to connect backend with mongoDB
 const connectionString = process.env.MONGO_URI;
