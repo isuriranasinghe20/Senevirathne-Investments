@@ -1,125 +1,201 @@
-import axios from 'axios';
-import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom';
+import axios from "axios";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
+
 
 function AddUser() {
-    const history = useNavigate();
-    const [inputs,setInputs] = useState({
-        indexNo:"",
-        nic:"",
-        name:"",
-        phone:"",
-        date:"",
-        vehicleNumber:"",
-        model:"",
-        licenseDate:"",
-        total:"",
-        installment:"",
-        period:"",
-        customerType: "INSTALLMENT"
-    });
+  const navigate = useNavigate();
+  const location = useLocation();
+  const returnedUser = location.state?.user || null;
 
-const handleChange = (e) => {
-    setInputs((prevState) => ({
-        ...prevState,
-        [e.target.name]: e.target.value,
+
+  const [inputs, setInputs] = useState({
+    indexNo: returnedUser?.indexNo || "",
+    nic: returnedUser?.nic || "",
+    name: returnedUser?.name || "",
+    phone: "",
+    date: "",
+    vehicleNumber: "",
+    model: "",
+    licenseDate: "",
+    total: "",
+    installment: "",
+    period: "",
+    customerType: "",
+    status: "Moderate",
+  });
+
+  // File upload states (not required)
+  const [documents, setDocuments] = useState({
+  customerNicDocs: returnedUser?.customerNicDocs || [],
+  guarantorNicDocs: returnedUser?.guarantorNicDocs || [],
+  vehicleBookDocs: returnedUser?.vehicleBookDocs || [],
+  vehicleLicenseDocs: returnedUser?.vehicleLicenseDocs || [],
+});
+
+
+  const handleChange = (e) => {
+    setInputs((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const handleFileChange = (e, type) => {
+    setDocuments((prev) => ({
+      ...prev,
+      [type]: [...e.target.files],
     }));
-};
+  };
 
-const handleSubmit = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log(inputs);
-    sendRequest().then(() => {
-        alert("User Added Successfully");
-        history("/users");
-    }).catch(() => {
-        alert("Unable to add user");
-    
-    });
-};
 
-const sendRequest = async () => {
-    await axios
-      .post("http://localhost:5000/users", {
-        indexNo: String(inputs.indexNo),
-        nic: String(inputs.nic),
-        name: String(inputs.name),
-        phone: String(inputs.phone),
-        date: String(inputs.date),
-        vehicleNumber: String(inputs.vehicleNumber),
-        model: String(inputs.model),
-        licenseDate: String(inputs.licenseDate),
+    try {
+      // -----------------------------
+      // 1️⃣ Create User (without files)
+      // -----------------------------
+     const createRes = await axios.post("http://localhost:5000/users", {
+        indexNo: inputs.indexNo,
+        nic: inputs.nic,
+        name: inputs.name,
+        phone: inputs.phone,
+        date: inputs.date,
+        vehicleNumber: inputs.vehicleNumber,
+        model: inputs.model,
+        licenseDate: inputs.licenseDate,
         total: Number(inputs.total),
         installment: Number(inputs.installment),
         period: Number(inputs.period),
-        customerType: inputs.customerType
-      })
-      .then((res) => res.data);
-}
+        customerType: inputs.customerType,
+        status: inputs.status,
+        existingDocs: documents 
+      });
+
+      const userId = createRes.data.users._id;
+
+      // -----------------------------
+      // 2️⃣ Upload Documents (optional)
+      // -----------------------------
+      const docTypeMap = {
+        customerNicDocs: "customerNic",
+        guarantorNicDocs: "guarantorNic",
+        vehicleBookDocs: "vehicleBook",
+        vehicleLicenseDocs: "vehicleLicense",
+      };
+
+      for (const type in documents) {
+        if (documents[type].length === 0) continue; // skip if empty
+
+        const formData = new FormData();
+        documents[type].forEach((file) => formData.append("files", file));
+
+        await axios.post(
+          `http://localhost:5000/users/${userId}/upload/${docTypeMap[type]}`,
+          formData,
+          {
+            headers: { "Content-Type": "multipart/form-data" },
+          }
+        );
+      }
+
+      alert("User added successfully!");
+      navigate("/users");
+
+    } catch (err) {
+      console.log(err);
+      alert("Error: Could not add user");
+    }
+  };
 
   return (
-    <div>
+    <div style={{ padding: "20px" }}>
       <h1>Add User</h1>
-      <br />
+
       <form onSubmit={handleSubmit}>
-        <label>No </label>
-        <input type="text" name="indexNo" onChange={handleChange} value={inputs.indexNo} required></input>
+        <label>Index No</label>
+        <input type="text" name="indexNo" value={inputs.indexNo} onChange={handleChange} required />
         <br />
+
         <label>NIC</label>
-        <input type="text" name="nic" onChange={handleChange} value={inputs.nic} required></input>
+        <input type="text" name="nic" value={inputs.nic} onChange={handleChange} required />
         <br />
+
         <label>Name</label>
-        <input type="text" name="name" onChange={handleChange} value={inputs.name} required></input>
+        <input type="text" name="name" value={inputs.name} onChange={handleChange} required />
         <br />
-        <label>Telephone No.</label>
-        <input type="text" name="phone" onChange={handleChange} value={inputs.phone} required></input>
+
+        <label>Phone</label>
+        <input type="text" name="phone" value={inputs.phone} onChange={handleChange} required />
         <br />
+
         <label>Date</label>
-        <input type="date" name="date" onChange={handleChange} value={inputs.date} required></input>
+        <input type="date" name="date" value={inputs.date} onChange={handleChange} required />
         <br />
-        <label>Vehicle No.</label>
-        <input type="text" name="vehicleNumber" onChange={handleChange} value={inputs.vehicleNumber} required></input>
+
+        <label>Vehicle Number</label>
+        <input type="text" name="vehicleNumber" value={inputs.vehicleNumber} onChange={handleChange} required />
         <br />
+
         <label>Model</label>
-        <input type="text" name="model" onChange={handleChange} value={inputs.model} required></input>
+        <input type="text" name="model" value={inputs.model} onChange={handleChange} required />
         <br />
+
         <label>License Date</label>
-        <input type="date" name="licenseDate" onChange={handleChange} value={inputs.licenseDate} required></input>
+        <input type="date" name="licenseDate" value={inputs.licenseDate} onChange={handleChange} required />
         <br />
+
         <label>Total Amount</label>
-        <input type="number" name="total" onChange={handleChange} value={inputs.total} required></input>
+        <input type="number" name="total" value={inputs.total} onChange={handleChange} required />
         <br />
-        <label>Monthly Installment Amount</label>
-        <input type="number" name="installment" onChange={handleChange} value={inputs.installment} required></input>
+
+        <label>Monthly Installment</label>
+        <input type="number" name="installment" value={inputs.installment} onChange={handleChange} required />
         <br />
-        <label>Period</label>
-        <input type="number" name="period" onChange={handleChange} value={inputs.period} required></input>
+
+        <label>Period (Months)</label>
+        <input type="number" name="period" value={inputs.period} onChange={handleChange} required />
         <br />
-         <label>Customer Type</label><br />
-                <input 
-                    type="radio" 
-                    name="customerType" 
-                    value="INSTALLMENT"
-                    checked={inputs.customerType === "INSTALLMENT"}
-                    onChange={handleChange}
-                /> Installment Customer
 
-                <input 
-                    type="radio" 
-                    name="customerType" 
-                    value="INTEREST_ONLY"
-                    checked={inputs.customerType === "INTEREST_ONLY"}
-                    onChange={handleChange}
-                    style={{ marginLeft: "20px" }}
-                /> Interest-Only Customer
+        <label>Customer Type</label><br />
+        <input
+          type="radio"
+          name="customerType"
+          value="INSTALLMENT"
+          checked={inputs.customerType === "INSTALLMENT"}
+          onChange={handleChange}
+        /> Installment
 
-                <br /><br />
+        <input
+          type="radio"
+          name="customerType"
+          value="INTEREST_ONLY"
+          checked={inputs.customerType === "INTEREST_ONLY"}
+          onChange={handleChange}
+          style={{ marginLeft: "20px" }}
+        /> Interest Only
+        <br /><br />
 
-        
-        <button type="submit">Submit</button>  
-        </form>
+        {/* -------- OPTIONAL DOCUMENT UPLOADS -------- */}
+
+        <label>Customer NIC Documents</label>
+        <input type="file" multiple onChange={(e) => handleFileChange(e, "customerNicDocs")} />
+        <br />
+
+        <label>Guarantor NIC Documents</label>
+        <input type="file" multiple onChange={(e) => handleFileChange(e, "guarantorNicDocs")} />
+        <br />
+
+        <label>Vehicle Book Documents</label>
+        <input type="file" multiple onChange={(e) => handleFileChange(e, "vehicleBookDocs")} />
+        <br />
+
+        <label>Vehicle License Documents</label>
+        <input type="file" multiple onChange={(e) => handleFileChange(e, "vehicleLicenseDocs")} />
+        <br /><br />
+
+        <button type="submit">Submit</button>
+      </form>
     </div>
-  )
+  );
 }
 
-export default AddUser
+export default AddUser;

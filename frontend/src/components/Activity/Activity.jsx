@@ -133,11 +133,12 @@ const [isClosed, setIsClosed] = useState(false);
         userId: id,
         no: form.no,
         date: form.date,
+        paidAmount: Number(form.paidAmount), 
         paid: form.paid,
       })
       .then((res) => {
         setActivities([...activities, res.data]); // Add to table
-        setForm({ no: "", date: "", paid: false }); // Clear inputs
+        setForm({ no: "", date: "", paidAmount: "", paid: false }); // Clear inputs
       })
       .catch((err) => console.log(err));
   }
@@ -197,8 +198,8 @@ const [isClosed, setIsClosed] = useState(false);
         </thead>
 
         <tbody>
-        {activities.map((a, i) => (
-          <tr key={i}>
+        {activities.map((a) => (
+          <tr key={a._id}>
             <td>
               <input
                 type="number"
@@ -234,7 +235,7 @@ const [isClosed, setIsClosed] = useState(false);
                 onChange={(e) =>
                   setActivities((prev) =>
                     prev.map((act) =>
-                      act._id === a._id ? { ...act, paidAmount: e.target.value } : act
+                      act._id === a._id ? { ...act, paidAmount: Number(e.target.value) } : act
                     )
                   )
                 }

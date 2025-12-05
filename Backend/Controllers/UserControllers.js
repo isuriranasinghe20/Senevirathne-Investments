@@ -1,4 +1,7 @@
 const User = require("../Model/UserModel");
+const Activity = require("../Model/Activity");
+const ClosedUser = require("../Model/ClosedUserModel");
+const ClosedActivity = require("../Routes/ClosedActivityRoutes").ClosedActivity;
 
 //data display all users
 const getAllUsers = async (req, res) => {
@@ -24,13 +27,18 @@ const getAllUsers = async (req, res) => {
 //data insert all users
 const addUsers = async (req, res) => {
 
-    const { indexNo, nic, name, phone, date, vehicleNumber, model, licenseDate, total, installment,period,customerType, status } = req.body;
+    const { indexNo, nic, name, phone, date, vehicleNumber, model, licenseDate, total, installment,period,customerType, status, existingDocs } = req.body;
 
     let users;
     const id = Date.now().toString() + Math.random().toString();
 
     try{
-        users = new User({id, indexNo, nic, name, phone, date, vehicleNumber, model, licenseDate, total, installment,period,customerType, status});
+        users = new User({id, indexNo, nic, name, phone, date, vehicleNumber, model, licenseDate, total, installment,period,customerType, status,
+          customerNicDocs: existingDocs?.customerNicDocs || [],
+          guarantorNicDocs: existingDocs?.guarantorNicDocs || [],
+          vehicleBookDocs: existingDocs?.vehicleBookDocs || [],
+          vehicleLicenseDocs: existingDocs?.vehicleLicenseDocs || []
+        });
         await users.save();
     }catch(err){
         console.log(err);
@@ -65,28 +73,64 @@ const getById = async (req, res) => {
     
 };
 
-//update user details
-const updateUser = async (req, res, next) => {
+ // <-- import ClosedUser model
 
-    const id = req.params.id;
-    const { indexNo, nic, name, phone, date, vehicleNumber, model, licenseDate, total, installment,period,customerType, status, isClosed } = req.body;
+const updateUser = async (req, res) => {
+  const id = req.params.id;
+  const { isClosed, ...otherData } = req.body; // extract isClosed separately
 
-    let users;
+  try {
+    // Update the user with new data
+    let user = await User.findByIdAndUpdate(id, { ...otherData, isClosed }, { new: true });
 
-    try{
-        users = await User.findByIdAndUpdate(id, {indexNo: indexNo, nic: nic, phone: phone, date: date, vehicleNumber: vehicleNumber, model: model, licenseDate: licenseDate, total: total, installment: installment,period: period, name: name, customerType: customerType, status: status, isClosed: isClosed});
-        users = await users.save();
-    }catch(err){
-        console.log(err);
+    if (!user) {
+      return res.status(404).json({ message: "Unable to update customer details" });
     }
 
-    
-    //not found
-    if(!users){
-        return res.status(404).json({message: "Unable to update customer details"});
+    // If the user is marked as closed, move to ClosedUser collection and delete from main User collection
+    if (isClosed) {
+      const closedUserData = {
+        ...user.toObject(),
+        isClosed: true,
+        customerNicDocs: user.customerNicDocs ?? [],
+        guarantorNicDocs: user.guarantorNicDocs ?? [],
+        vehicleBookDocs: user.vehicleBookDocs ?? [],
+        vehicleLicenseDocs: user.vehicleLicenseDocs ?? []
+
+      };
+
+      const activities = await Activity.find({ userId: id });
+
+      // Move activities
+      for (const a of activities) {
+        const closedActivity = new ClosedActivity({
+          userId: id,
+          no: a.no,
+          date: a.date,
+          paidAmount: a.paidAmount,
+          paid: a.paid
+        });
+        await closedActivity.save();
+      }
+
+      // Delete activity rows from normal table
+      await Activity.deleteMany({ userId: id });
+
+      const closedUser = new ClosedUser(closedUserData);
+      await closedUser.save();
+      await User.findByIdAndDelete(id);
     }
-    return res.status(200).json({users});
-}
+
+    // If not closed, return updated user
+    res.status(200).json({ message: "User updated successfully", user });
+
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Unable to update user" });
+  }
+};
+
+
 
 
 //Delete user details

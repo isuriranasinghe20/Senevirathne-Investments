@@ -11,6 +11,7 @@ const cors = require('cors');
 
 const router = require("./Routes/UserRoutes");
 const activityRoutes = require("./Routes/activityRoutes");
+const ClosedActivityRoutes = require("./Routes/ClosedActivityRoutes");
 
 
 //Middleware
@@ -20,6 +21,10 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/users", router);
 app.use(activityRoutes);
 app.use("/uploads", express.static("uploads"));
+app.use("/closed-users", require("./Routes/ClosedUserRoutes"));
+app.use("/closed-activity", ClosedActivityRoutes);
+
+
 
 
 //link to connect backend with mongoDB
