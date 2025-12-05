@@ -11,6 +11,7 @@ import Register from "./components/Register/Register.jsx";
 import Login from "./components/Login/Login.jsx";
 import UserDetails from "./components/UserDetails/UserDetails.jsx";
 import Activity from "./components/Activity/Activity.jsx";
+import ClosedFiles from "./components/ClosedFiles/ClosedFiles.jsx";
 
 function App() {
   return (
@@ -28,6 +29,8 @@ function App() {
           <Route path="/user/:id" element={<UserDetails />} />
           <Route path="/activity/:id" element={<Activity />} />
           <Route path="/aboutus" element={<AboutUs />} />
+          <Route path="/closedFiles" element={<ClosedFiles />} />
+
         </Routes>
       </React.Fragment>
     </div>

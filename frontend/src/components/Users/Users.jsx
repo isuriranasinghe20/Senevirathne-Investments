@@ -102,6 +102,13 @@ function Users() {
         Add User
       </button>
 
+      <button
+        onClick={() => navigate("/closedFiles")}
+        style={{ padding: "10px 20px" }}
+      >
+      Closed Files
+      </button>
+
        {/* TABLE OF USERS */}
       <table border="1" cellPadding="10" style={{ width: "90%", margin: "auto" }}>
         <thead>

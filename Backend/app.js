@@ -19,6 +19,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use("/users", router);
 app.use(activityRoutes);
+app.use("/uploads", express.static("uploads"));
+
 
 //link to connect backend with mongoDB
 const connectionString = process.env.MONGO_URI;

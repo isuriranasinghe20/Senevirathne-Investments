@@ -14,7 +14,6 @@ const userSchema = new Schema({
     nic:{
         type: String,
         required: true,
-        unique: true,
     },
     name:{
         type: String,
@@ -31,7 +30,6 @@ const userSchema = new Schema({
     vehicleNumber:{
         type: String,
         required: true,
-        unique: true,
     },
     model:{
         type: String,
@@ -53,6 +51,10 @@ const userSchema = new Schema({
         type: Number,
         required: true,
     },
+    isClosed: { 
+        type: Boolean, 
+        default: false 
+    },
     customerType: {
     type: String,
     enum: ["INSTALLMENT", "INTEREST_ONLY"],
@@ -62,7 +64,12 @@ const userSchema = new Schema({
     type: String,
     enum: ["Reliable", "Moderate", "High Risk"],
     default: "Moderate"
-  }
+  },        
+
+  customerNicDocs: [String],   // multiple images allowed
+  guarantorNicDocs: [String],
+  vehicleBookDocs: [String],
+  vehicleLicenseDocs: [String]
 
 });
 
