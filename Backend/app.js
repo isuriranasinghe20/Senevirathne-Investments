@@ -2,6 +2,7 @@
 const dotenv = require('dotenv');
 const express = require('express');
 const mongoose = require('mongoose');
+const router = require('./Routes/UserRoutes');
 
 
 //loads whats inside on .env file
@@ -15,16 +16,9 @@ const ClosedActivityRoutes = require("./Routes/ClosedActivityRoutes");
 
 
 //Middleware
-app.use(cors());
-app.use(express.json());
+app.use(express.json());          
 app.use(express.urlencoded({ extended: true }));
 app.use("/users", router);
-app.use(activityRoutes);
-app.use("/uploads", express.static("uploads"));
-app.use("/closed-users", require("./Routes/ClosedUserRoutes"));
-app.use("/closed-activity", ClosedActivityRoutes);
-
-
 
 
 //link to connect backend with mongoDB
