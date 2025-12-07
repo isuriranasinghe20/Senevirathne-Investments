@@ -1,0 +1,168 @@
+{
+  "info": {
+    "_postman_id": "b7f8d6b9-9c3d-4a8e-9c4a-0f6b3b2a9e5f",
+    "name": "Senevirathne-Investments Backend",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Collection to test the Backend API: create/list users and upload documents. Replace {{baseUrl}} with your server (default http://localhost:5000)."
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000",
+      "type": "string"
+    },
+    {
+      "key": "userId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "filename",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Create User",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"indexNo\": \"A123\",\n  \"nic\": \"987654321V\",\n  \"name\": \"Test User\",\n  \"phone\": \"0771234567\",\n  \"date\": \"2025-12-01\",\n  \"vehicleNumber\": \"WP-ABC-1234\",\n  \"model\": \"Toyota\",\n  \"licenseDate\": \"2020-05-10\",\n  \"total\": 250000,\n  \"installment\": 15000,\n  \"period\": 18,\n  \"customerType\": \"INSTALLMENT\",\n  \"status\": \"Moderate\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/users",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "users"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get All Users",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/users",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "users"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get User By ID",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/users/:userId",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "users",
+            ":userId"
+          ],
+          "variable": [
+            {
+              "key": "userId",
+              "value": "{{userId}}",
+              "description": "Set this to the _id returned from Create User"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Upload Documents (form-data)",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "files",
+              "type": "file",
+              "src": "",
+              "description": "Select one or more files. Use multiple form entries named 'files' or select multiple files (Postman supports this)."
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{baseUrl}}/users/:userId/upload/:docType",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "users",
+            ":userId",
+            "upload",
+            ":docType"
+          ],
+          "variable": [
+            {
+              "key": "userId",
+              "value": "{{userId}}",
+              "description": "User _id from Create User"
+            },
+            {
+              "key": "docType",
+              "value": "customerNic",
+              "description": "One of: customerNic, guarantorNic, vehicleBook, vehicleLicense"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Uploaded File",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/uploads/:filename",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "uploads",
+            ":filename"
+          ],
+          "variable": [
+            {
+              "key": "filename",
+              "value": "{{filename}}",
+              "description": "Filename as stored in Backend/uploads (check uploads folder)"
+            }
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}

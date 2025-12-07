@@ -66,8 +66,7 @@ function AddUser() {
         installment: Number(inputs.installment),
         period: Number(inputs.period),
         customerType: inputs.customerType,
-        status: inputs.status,
-        existingDocs: documents 
+        status: inputs.status
       });
 
       const userId = createRes.data.users._id;
