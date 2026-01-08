@@ -1,10 +1,11 @@
 const express = require("express");
 const router = express.Router();
-const ClosedUserController = require("../Controllers/ClosedUserController");
-const { getClosedUserById } = require("../Controllers/ClosedUserController");
+const { getClosedUserById, getAllClosedUsers, updateTotalPaid } = require("../Controllers/ClosedUserController");
 
 router.get("/:id", getClosedUserById);
-
-router.get("/", ClosedUserController.getAllClosedUsers);
+router.get("/", getAllClosedUsers);
+router.post("/total/:id", updateTotalPaid);
 
 module.exports = router;
+
+

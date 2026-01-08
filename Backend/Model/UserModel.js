@@ -15,11 +15,11 @@ const userSchema = new Schema({
     period: { type: Number },
     customerType: { type: String },
     status: { type: String, default: 'Moderate' },
-    // store file info (paths or metadata) if you handle uploads later
-    customerNicDocs: { type: [String], default: [] },
-    guarantorNicDocs: { type: [String], default: [] },
-    vehicleBookDocs: { type: [String], default: [] },
-    vehicleLicenseDocs: { type: [String], default: [] },
+    customerNicDocs: [String],
+    guarantorNicDocs: [String],
+    vehicleBookDocs: [String],
+    vehicleLicenseDocs: [String]
 }, { timestamps: true });
+
 
 module.exports = mongoose.model("UserModel", userSchema);

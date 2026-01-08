@@ -1,114 +1,42 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react"; 
 import axios from "axios";
 import { useParams } from "react-router-dom";
+import { FcViewDetails } from "react-icons/fc";
 
 function Activity() {
   const { id } = useParams();
-
   const [user, setUser] = useState(null);
   const [status, setStatus] = useState("Moderate");
-
-
-  // New states for activity records
   const [activities, setActivities] = useState([]);
   const [form, setForm] = useState({
     no: "",
     date: "",
     paidAmount: "",
     paid: false,
-    
   });
 
-  const totalPaidAmount = activities.reduce((sum, a) => {
-  return sum + (Number(a.paidAmount) || 0);
-  }, 0);
+  const [isClosed, setIsClosed] = useState(false);
+  const [confirmClose, setConfirmClose] = useState(false);
 
-  //receipt printing function
-  const handlePrintReceipt = (row) => {
-  const receiptWindow = window.open("", "PRINT", "width=300,height=600");
+  const [alert, setAlert] = useState({ message: "", type: "" });
+  const [alertVisible, setAlertVisible] = useState(false);
 
-  const customerTypeText =
-    user.customerType === "INSTALLMENT"
-      ? "Installment"
-      : "Interest";
+  const totalPaidAmount = activities.reduce(
+    (sum, a) => sum + (Number(a.paidAmount) || 0),
+    0
+  );
 
-  const generatedDateTime = new Date().toLocaleString("en-LK", {
-    timeZone: "Asia/Colombo",
-  });
-
-  receiptWindow.document.write(`
-    <html>
-      <head>
-        <style>
-          body { 
-            font-family: Arial; 
-            width: 58mm; 
-            padding: 10px;
-            font-size: 12px;
-          }
-          h2, h3, p {
-            margin: 5px 0;
-            text-align: center;
-          }
-          .footer {
-            margin-top: 15px;
-            text-align: center;
-            border-top: 1px dashed #000;
-            padding-top: 10px;
-            font-size: 11px;
-          }
-        </style>
-      </head>
-      <body>
-        <h2><strong>Senevirathne Investments</strong></h2>
-        <hr />
-
-        <p><strong>Name:</strong> ${user.name}</p>
-        <p><strong>Vehicle:</strong> ${user.vehicleNumber}</p>
-        
-        <p>
-          <strong>Paid Amount:</strong> Rs.${row.paidAmount} <br />
-          (${customerTypeText})
-        </p>
-
-        <p><strong>Paid Date:</strong> ${row.date.substring(0, 10)}</p>
-
-        <div class="footer">
-        <br /><br />
-          ...................................................
-          <br /><br />
-          Thank you for your payment!<br />
-          Call: 077-7860211
-           <br/>
-          <p style="font-size:10px;">Receipt Generated: ${generatedDateTime}</p>
-        </div>
-
-      </body>
-    </html>
-  `);
-
-  receiptWindow.document.close();
-  receiptWindow.focus();
-  receiptWindow.print();
-  receiptWindow.close();
-};
-
-const [isClosed, setIsClosed] = useState(false); 
-
-  // Fetch user details
   useEffect(() => {
-  axios.get(`http://localhost:5000/users/${id}`)
-    .then(res => {
-      setUser(res.data.user);
-      setStatus(res.data.user.status);  
-      setIsClosed(res.data.user.isClosed || false);
-    })
-    .catch(err => console.log(err));
-}, [id]);
+    axios
+      .get(`http://localhost:5000/users/${id}`)
+      .then((res) => {
+        setUser(res.data.user);
+        setStatus(res.data.user.status);
+        setIsClosed(res.data.user.isClosed || false);
+      })
+      .catch((err) => console.log(err));
+  }, [id]);
 
-  
-
-  // Fetch user's activity records
   useEffect(() => {
     axios
       .get(`http://localhost:5000/activity/${id}`)
@@ -116,251 +44,419 @@ const [isClosed, setIsClosed] = useState(false);
       .catch((err) => console.log(err));
   }, [id]);
 
-  // Handle input changes for new row
-  function handleChange(e) {
-    const { name, value, type, checked } = e.target;
+  const showAlert = (message, type = "success") => {
+    setAlert({ message, type });
+    setAlertVisible(true);
+    setTimeout(() => setAlertVisible(false), 3000);
+  };
 
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
     setForm((prev) => ({
       ...prev,
-      [name]: type === "checkbox" ? checked : value
+      [name]: type === "checkbox" ? checked : value,
     }));
-  }
+  };
 
-  // Save new activity row
-  function handleSave() {
+  const handleSave = () => {
     axios
       .post("http://localhost:5000/activity", {
         userId: id,
-        no: form.no,
-        date: form.date,
-        paidAmount: Number(form.paidAmount), 
-        paid: form.paid,
+        ...form,
+        paidAmount: Number(form.paidAmount),
       })
       .then((res) => {
-        setActivities([...activities, res.data]); // Add to table
-        setForm({ no: "", date: "", paidAmount: "", paid: false }); // Clear inputs
+        setActivities([...activities, res.data]);
+        setForm({ no: "", date: "", paidAmount: "", paid: false });
+        showAlert("Activity added successfully!");
       })
-      .catch((err) => console.log(err));
-  }
+      .catch(() => showAlert("Error saving activity", "error"));
+  };
 
-  if (!user) {
-    return <h2>Loading...</h2>;
-  }
+  const confirmCloseAccount = () => {
+    setConfirmClose(false);
+    setIsClosed(true);
 
+    axios
+      .put(`http://localhost:5000/users/${id}`, {
+        ...user,
+        isClosed: true,
+      })
+      .then(() => showAlert("Account locked successfully"));
+  };
+
+  // ✅ Print function
+  const handlePrintReceipt = (row) => {
+    const receiptWindow = window.open("", "PRINT", "width=300,height=600");
+    const customerTypeText =
+      user.customerType === "INSTALLMENT" ? "Installment" : "Interest";
+    const generatedDateTime = new Date().toLocaleString("en-LK", {
+      timeZone: "Asia/Colombo",
+    });
+
+    receiptWindow.document.write(`
+      <html>
+        <head>
+          <style>
+            body { font-family: Arial; width: 58mm; padding: 10px; font-size: 12px; }
+            h2, p { text-align: center; margin: 5px 0; }
+            .footer { margin-top: 15px; text-align: center; border-top: 1px dashed #000; padding-top: 10px; font-size: 11px; }
+          </style>
+        </head>
+        <body>
+          <h2><strong>Senevirathne Investments</strong></h2>
+          <hr />
+          <p><strong>Name:</strong> ${user.name}</p>
+          <p><strong>Vehicle:</strong> ${user.vehicleNumber}</p>
+          <p><strong>Paid Amount:</strong> Rs.${row.paidAmount} (${customerTypeText})</p>
+          <p><strong>Paid Date:</strong> ${row.date.substring(0, 10)}</p>
+          <div class="footer">
+            Thank you for your payment!<br/>Call: 077-7860211
+            <p style="font-size:10px;">Generated: ${generatedDateTime}</p>
+          </div>
+        </body>
+      </html>
+    `);
+    receiptWindow.document.close();
+    receiptWindow.print();
+  };
+
+  if (!user)
+    return <h2 className="text-center mt-10 text-blue-600">Loading...</h2>;
 
   return (
-    <div style={{ padding: "20px" }}>
-      <h1>User Activity</h1>
-      <hr />
+    <div className="relative min-h-screen py-4 bg-linear-to-br from-blue-100 to-blue-200 font-sans">
 
-      {/* User main details */}
-      <h2>Name: {user.name}</h2>
-      <h3>Total Amount: {user.total}</h3>
-      <h3>Installment Amount: {user.installment}</h3>
-      <h3>Period: {user.period}</h3>
-      <h3 style={{ marginTop: "15px" }}>Total Paid Amount: Rs {totalPaidAmount}</h3>
-      <div style={{ marginBottom: "20px" }}>
-       <label>Status: </label>
-        <select
-          value={status}
-          onChange={(e) => {
-            const newStatus = e.target.value;
-            setStatus(newStatus);
-
-            // Immediately send to server
-            axios
-              .put(`http://localhost:5000/users/${id}`, { ...user, status: newStatus })
-              .then(() => console.log("Status updated successfully"))
-              .catch((err) => console.log(err));
-          }}
+      {/* ALERT */}
+      {alert.message && (
+        <div
+          className={`fixed top-5 left-1/2 -translate-x-1/2 px-6 py-3 rounded-md shadow-md text-center z-50 ${
+            alert.type === "success"
+              ? "bg-green-100 text-green-700"
+              : "bg-red-100 text-red-700"
+          } transition-opacity duration-300 ${
+            alertVisible ? "opacity-100" : "opacity-0"
+          }`}
         >
-          <option value="Reliable">Reliable</option>
-          <option value="Moderate">Moderate</option>
-          <option value="High Risk">High Risk</option>
-        </select>
+          {alert.message}
+        </div>
+      )}
 
+      {/* MAIN CONTENT */}
+      <div className={`${isClosed ? "pointer-events-none opacity-50" : ""}`}>
+        {/* HEADER */}
+        <div className="relative max-w-5xl mx-4 sm:mx-auto my-4 p-6 bg-white/70 backdrop-blur-md rounded-2xl border border-blue-200 shadow-lg text-center">
+          <div className="flex items-center justify-center gap-3">
+            <FcViewDetails className="text-3xl" />
+            <h1 className="text-xl font-bold text-blue-700">
+              Customer Activity
+            </h1>
+          </div>
+          <p className="text-sm text-blue-700 opacity-70 mt-1">
+            Manage payment records and update customer status.
+          </p>
+        </div>
+
+        {/* MAIN CARD */}
+        <div className="max-w-5xl mx-4 sm:mx-auto bg-white rounded-lg shadow-lg border border-blue-200 p-6 sm:p-8 mb-10">
+
+          {/* CUSTOMER INFO */}
+<section>
+  <h2 className="text-lg font-semibold text-blue-800 border-b border-blue-200 pb-2 mb-4">
+    Customer Information
+  </h2>
+
+  <div className="grid gap-4 sm:grid-cols-3 md:grid-cols-4">
+    {/* Name */}
+    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex flex-col">
+      <span className="text-gray-500 text-xs">Name</span>
+      <span className="text-blue-700 font-medium">{user.name}</span>
+    </div>
+
+    {/* Vehicle Number */}
+    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex flex-col">
+      <span className="text-gray-500 text-xs">Vehicle No</span>
+      <span className="text-blue-700 font-medium">{user.vehicleNumber}</span>
+    </div>
+
+    {/* Total Loan */}
+    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex flex-col">
+      <span className="text-gray-500 text-xs">Loan Amount</span>
+      <span className="text-blue-700 font-medium">Rs {user.total}</span>
+    </div>
+
+    {/* Installment */}
+    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex flex-col">
+      <span className="text-gray-500 text-xs">Installment</span>
+      <span className="text-blue-700 font-medium">Rs {user.installment}</span>
+    </div>
+
+    {/* Period */}
+    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex flex-col">
+      <span className="text-gray-500 text-xs">Period</span>
+      <span className="text-blue-700 font-medium">{user.period}</span>
+    </div>
+
+    {/* Total Paid */}
+    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex flex-col">
+      <span className="text-gray-500 text-xs">Total Paid</span>
+      <span className="text-blue-700 font-medium">Rs {totalPaidAmount}</span>
+    </div>
+
+    {/* Customer Status */}
+    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex flex-col">
+      <span className="text-gray-500 text-xs">Status</span>
+      <select
+        disabled={isClosed}
+        className="border border-blue-300 bg-blue-50 rounded-md px-2 py-1 text-blue-700"
+        value={status}
+        onChange={(e) => {
+          const newStatus = e.target.value;
+          setStatus(newStatus);
+          axios.put(`http://localhost:5000/users/${id}`, {
+            ...user,
+            status: newStatus,
+          });
+        }}
+      >
+        <option>Reliable</option>
+        <option>Moderate</option>
+        <option>High Risk</option>
+      </select>
+    </div>
+
+    {/* Closed Checkbox */}
+    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-center gap-2">
+      <input
+        type="checkbox"
+        checked={isClosed}
+        disabled={isClosed}
+        onChange={(e) => setConfirmClose(true)}
+        className="h-4 w-4 accent-blue-500"
+      />
+      <span className="text-blue-700 font-medium">Mark as Closed</span>
+    </div>
+  </div>
+</section>
+
+          {/* Payment History */}
+          <section className="mt-8">
+            <h2 className="text-lg font-semibold text-blue-800 border-b border-blue-200 pb-2 mb-4">
+              Payment History
+            </h2>
+
+            <div className="overflow-x-auto">
+              <table className="min-w-full border border-blue-200 rounded-md text-sm">
+                <thead className="bg-blue-50 text-blue-800 font-medium">
+                  <tr>
+                    <th className="py-2 px-3 text-left">No</th>
+                    <th className="py-2 px-3 text-left">Date</th>
+                    <th className="py-2 px-3 text-left">Paid Amount (Rs)</th>
+                    <th className="py-2 px-3 text-center">Paid</th>
+                    <th className="py-2 px-3 text-center">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {activities.map((a) => (
+                    <tr key={a._id} className="border-t border-blue-100 hover:bg-blue-50/60">
+                      <td className="py-2 px-3">
+                        <input
+                          type="number"
+                          value={a.no}
+                          disabled={isClosed}
+                          onChange={(e) =>
+                            setActivities((prev) =>
+                              prev.map((act) =>
+                                act._id === a._id
+                                  ? { ...act, no: e.target.value }
+                                  : act
+                              )
+                            )
+                          }
+                          className="w-20 border border-blue-200 rounded px-2 py-1 bg-blue-50 focus:ring-1 focus:ring-blue-400 outline-none"
+                        />
+                      </td>
+                      <td className="py-2 px-3">
+                        <input
+                          type="date"
+                          value={a.date ? a.date.substring(0, 10) : ""}
+                          disabled={isClosed}
+                          onChange={(e) =>
+                            setActivities((prev) =>
+                              prev.map((act) =>
+                                act._id === a._id
+                                  ? { ...act, date: e.target.value }
+                                  : act
+                              )
+                            )
+                          }
+                          className="border border-blue-200 rounded px-2 py-1 bg-blue-50 focus:ring-1 focus:ring-blue-400 outline-none"
+                        />
+                      </td>
+                      <td className="py-2 px-3">
+                        <input
+                          type="number"
+                          value={a.paidAmount || ""}
+                          disabled={isClosed}
+                          onChange={(e) =>
+                            setActivities((prev) =>
+                              prev.map((act) =>
+                                act._id === a._id
+                                  ? { ...act, paidAmount: Number(e.target.value) }
+                                  : act
+                              )
+                            )
+                          }
+                          className="w-28 border border-blue-200 rounded px-2 py-1 bg-blue-50 focus:ring-1 focus:ring-blue-400 outline-none"
+                        />
+                      </td>
+                      <td className="py-2 px-3 text-center">
+                        <input
+                          type="checkbox"
+                          checked={a.paid}
+                          disabled={isClosed}
+                          onChange={(e) =>
+                            setActivities((prev) =>
+                              prev.map((act) =>
+                                act._id === a._id
+                                  ? { ...act, paid: e.target.checked }
+                                  : act
+                              )
+                            )
+                          }
+                          className="h-4 w-4 accent-blue-500"
+                        />
+                      </td>
+                      <td className="py-2 px-3 text-center space-x-2">
+                        <button
+                          onClick={() =>
+                            axios.put(`http://localhost:5000/activity/${a._id}`, a)
+                              .then(() => showAlert("Activity updated"))
+                          }
+                          disabled={isClosed}
+                          className="bg-blue-400 hover:bg-blue-600 text-white px-4 py-1 rounded transition"
+                        >
+                          Save
+                        </button>
+                        <button
+                          onClick={() =>
+                            axios.delete(`http://localhost:5000/activity/${a._id}`)
+                              .then(() => setActivities(prev => prev.filter(act => act._id !== a._id)))
+                              .then(() => showAlert("Deleted"))
+                          }
+                          disabled={isClosed}
+                          className="bg-red-400 hover:bg-red-600 text-white px-3 py-1 rounded transition"
+                        >
+                          Delete
+                        </button>
+                        <button
+                          onClick={() => handlePrintReceipt(a)}
+                          className="bg-green-500 hover:bg-green-700 text-white px-4.5 py-1 rounded transition pointer-events-auto"
+                        >
+                          Print
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+
+                  {/* New Entry */}
+                  <tr className="bg-blue-50/50 border-t border-blue-100">
+                    <td className="py-2 px-3">
+                      <input
+                        type="number"
+                        name="no"
+                        value={form.no}
+                        onChange={handleChange}
+                        disabled={isClosed}
+                        className="w-20 border border-blue-200 rounded px-2 py-1 bg-white focus:ring-1 focus:ring-blue-400 outline-none"
+                      />
+                    </td>
+                    <td className="py-2 px-3">
+                      <input
+                        type="date"
+                        name="date"
+                        value={form.date}
+                        onChange={handleChange}
+                        disabled={isClosed}
+                        className="border border-blue-200 rounded px-2 py-1 bg-white focus:ring-1 focus:ring-blue-400 outline-none"
+                      />
+                    </td>
+                    <td className="py-2 px-3">
+                      <input
+                        type="number"
+                        name="paidAmount"
+                        value={form.paidAmount}
+                        onChange={handleChange}
+                        disabled={isClosed}
+                        className="w-28 border border-blue-200 rounded px-2 py-1 bg-white focus:ring-1 focus:ring-blue-400 outline-none"
+                      />
+                    </td>
+                    <td className="py-2 px-3 text-center">
+                      <input
+                        type="checkbox"
+                        name="paid"
+                        checked={form.paid}
+                        onChange={handleChange}
+                        disabled={isClosed}
+                        className="h-4 w-4 accent-blue-500"
+                      />
+                    </td>
+                    <td className="py-2 px-3 text-center">
+                      <button
+                        onClick={handleSave}
+                        disabled={isClosed}
+                        className="bg-blue-400 hover:bg-blue-600 text-white px-3 py-1 rounded transition"
+                      >
+                        Save
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+        </div>
       </div>
 
+      {/* Lock Overlay */}
+      {isClosed && (
+        <div className="fixed inset-0 z-30 bg-black/30 backdrop-blur-sm flex items-center justify-center">
+          <p className="text-white text-lg font-semibold">
+            Account Closed          
+          </p>
+        </div>
+      )}
 
-      <br /><hr /><br />
+      {/* Confirm Modal */}
+      {confirmClose && (
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center">
+          <div className="bg-white rounded-xl p-6 shadow-lg max-w-md w-full text-center">
+            <h3 className="text-lg font-semibold text-red-600 mb-2">
+              Confirm Account Closure
+            </h3>
+            <p className="text-sm text-gray-600 mb-6">
+              This will permanently lock this account.
+              <br />Are you sure?
+            </p>
 
-      {/* Activity Table */}
-      <h2>Payment History</h2>
-
-      <table border="1" cellPadding="10" style={{ width: "100%", borderCollapse: "collapse" }}>
-        <thead>
-          <tr>
-            <th>No</th>
-            <th>Date</th>
-            <th>Paid Amount (Rs)</th>
-            <th>Paid</th>
-          </tr>
-        </thead>
-
-        <tbody>
-        {activities.map((a) => (
-          <tr key={a._id}>
-            <td>
-              <input
-                type="number"
-                value={a.no}
-                onChange={(e) =>
-                  setActivities((prev) =>
-                    prev.map((act) =>
-                      act._id === a._id ? { ...act, no: e.target.value } : act
-                    )
-                  )
-                }
-                disabled={isClosed}
-              />
-            </td>
-            <td>
-              <input
-                type="date"
-                value={a.date ? a.date.substring(0, 10) : ""}
-                onChange={(e) =>
-                  setActivities((prev) =>
-                    prev.map((act) =>
-                      act._id === a._id ? { ...act, date: e.target.value } : act
-                    )
-                  )
-                }
-                disabled={isClosed}
-              />
-            </td>
-            <td>
-              <input
-                type="number"
-                value={a.paidAmount || 0}
-                onChange={(e) =>
-                  setActivities((prev) =>
-                    prev.map((act) =>
-                      act._id === a._id ? { ...act, paidAmount: Number(e.target.value) } : act
-                    )
-                  )
-                }
-                disabled={isClosed}
-              />
-            </td>
-            <td>
-              <input
-                type="checkbox"
-                checked={a.paid}
-                onChange={(e) =>
-                  setActivities((prev) =>
-                    prev.map((act) =>
-                      act._id === a._id ? { ...act, paid: e.target.checked } : act
-                    )
-                  )
-                }
-                disabled={isClosed}
-              />
-            </td>
-            <td>
+            <div className="flex justify-center gap-4">
               <button
-                onClick={() =>
-                  axios.put(`http://localhost:5000/activity/${a._id}`, a)
-                    .then(() => alert("Updated!"))
-                }
-                disabled={isClosed}
+                onClick={confirmCloseAccount}
+                className="bg-red-500 hover:bg-red-600 text-white px-5 py-2 rounded-lg"
               >
-                Update
+                Yes, Lock
               </button>
               <button
-                onClick={() =>
-                  axios.delete(`http://localhost:5000/activity/${a._id}`)
-                    .then(() =>
-                      setActivities((prev) => prev.filter((act) => act._id !== a._id))
-                    )
-                }
-                disabled={isClosed}
-                style={{ marginLeft: "10px" }}
+                onClick={() => setConfirmClose(false)}
+                className="bg-gray-200 hover:bg-gray-300 px-5 py-2 rounded-lg"
               >
-                Delete
+                Cancel
               </button>
-              <button
-                onClick={() => handlePrintReceipt(a)}
-                style={{ marginLeft: "10px" }}
-              >
-                Print Receipt
-              </button>
-            </td>
-          </tr>
-
-          
-
-        ))}
-
-        <tr>
-          <td>
-            <input
-              type="number"
-              name="no"
-              value={form.no}
-              onChange={handleChange}
-              disabled={isClosed}
-            />
-          </td>
-          <td>
-            <input
-              type="date"
-              name="date"
-              value={form.date}
-              onChange={handleChange}
-              disabled={isClosed}
-            />
-          </td>
-          <td>
-            <input
-              type="number"
-              name="paidAmount"
-              value={form.paidAmount}
-              onChange={handleChange}
-              disabled={isClosed}
-            />
-          </td>
-          <td>
-            <input
-              type="checkbox"
-              name="paid"
-              checked={form.paid}
-              onChange={handleChange}
-              disabled={isClosed}
-            /> Paid
-          </td>
-          <td>
-            <button onClick={handleSave} disabled={isClosed}>
-              Save
-            </button>
-          </td>
-        </tr>
-
-      </tbody>
-
-      </table>
-
-      <div style={{ marginTop: "20px" }}>
-      <label>
-  <input
-    type="checkbox"
-    checked={isClosed}
-    onChange={(e) => {
-      const value = e.target.checked;
-      setIsClosed(value);
-
-      // immediately send to server
-      axios
-        .put(`http://localhost:5000/users/${id}`, { ...user, isClosed: value })
-        .then(() => alert("Status updated!"))
-        .catch((err) => console.log(err));
-    }}
-  />
-  Mark as Closed
-</label>
-
-       </div>
-
-
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );

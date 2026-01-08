@@ -1,4 +1,9 @@
 const User = require("../Model/UserModel");
+const ClosedUser = require("../Model/ClosedUserModel");
+const Activity = require("../Model/Activity");
+const ClosedActivity = require("../Model/ClosedActivityModel");
+const fs = require("fs");
+const path = require("path");
 
 // Get all users
 const getAllUsers = async (req, res) => {
@@ -14,79 +19,120 @@ const getAllUsers = async (req, res) => {
     }
 };
 
-// Create a user (accepts all frontend fields)
+//data insert all users
 const addUsers = async (req, res) => {
-    try {
-        console.log("Received request body:", req.body);
-        
-        // Extract only the fields defined in the schema
-        let {
-            indexNo, nic, name, phone, date, vehicleNumber, model, licenseDate,
-            total, installment, period, customerType, status
-        } = req.body;
 
-        // Validate required field
-        if (!name || name.trim() === "") {
-            return res.status(400).json({ message: "Name is required" });
-        }
+  const { 
+    indexNo, nic, name, phone, date, vehicleNumber, model, licenseDate, 
+    total, installment, period, customerType, status, existingDocs 
+  } = req.body;
 
-        // Convert numeric fields, handling empty strings
-        const userData = {
-            indexNo: indexNo || undefined,
-            nic: nic || undefined,
-            name: name.trim(),
-            phone: phone || undefined,
-            date: date ? new Date(date) : undefined,
-            vehicleNumber: vehicleNumber || undefined,
-            model: model || undefined,
-            licenseDate: licenseDate ? new Date(licenseDate) : undefined,
-            total: total && total !== "" ? Number(total) : undefined,
-            installment: installment && installment !== "" ? Number(installment) : undefined,
-            period: period && period !== "" ? Number(period) : undefined,
-            customerType: customerType || undefined,
-            status: status || "Moderate"
-        };
+  let user;
+  const id = Date.now().toString() + Math.random().toString();
 
-        // Remove undefined values to avoid overwriting defaults
-        Object.keys(userData).forEach(key => userData[key] === undefined && delete userData[key]);
+  try {
+    user = new User({
+      id,
+      indexNo,
+      nic,
+      name,
+      phone,
+      date,
+      vehicleNumber,
+      model,
+      licenseDate,
+      total,
+      installment,
+      period,
+      customerType,
+      status,
 
-        console.log("Creating user with data:", userData);
-        const user = new User(userData);
-        await user.save();
-        console.log("User saved successfully:", user._id);
-        return res.status(201).json({ users: user });
-    } catch (err) {
-        console.error("Error creating user:", err.message);
-        console.error("Stack:", err.stack);
-        return res.status(500).json({ message: "Unable to create user", error: err.message });
-    }
+      // ⭐ Accept old documents (very important)
+      customerNicDocs: existingDocs?.customerNicDocs || [],
+      guarantorNicDocs: existingDocs?.guarantorNicDocs || [],
+      vehicleBookDocs: existingDocs?.vehicleBookDocs || [],
+      vehicleLicenseDocs: existingDocs?.vehicleLicenseDocs || []
+    });
+
+    await user.save();
+
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ message: "Unable to add user" });
+  }
+
+  return res.status(200).json({ user });
 };
 
-// Get user by Id
-const getById = async (req, res) => {
-    const id = req.params.id;
-    try {
-        const user = await User.findById(id);
-        if (!user) return res.status(404).json({ message: "User Not found" });
-        return res.status(200).json({ user });
-    } catch (err) {
-        console.error(err);
-        return res.status(500).json({ message: "Server error" });
-    }
-};
+
 
 // Update user details
 const updateUser = async (req, res) => {
-    const id = req.params.id;
-    try {
-        const updated = await User.findByIdAndUpdate(id, { ...req.body }, { new: true });
-        if (!updated) return res.status(404).json({ message: "Unable to update user details" });
-        return res.status(200).json({ users: updated });
-    } catch (err) {
-        console.error(err);
-        return res.status(500).json({ message: "Server error" });
+  const id = req.params.id;
+  const { isClosed, ...otherData } = req.body; // extract isClosed separately
+
+  try {
+    // Update the user with new data
+    let user = await User.findByIdAndUpdate(id, { ...otherData, isClosed }, { new: true });
+
+    if (!user) {
+      return res.status(404).json({ message: "Unable to update customer details" });
     }
+
+     // If closing user → move to closed collections
+    if (isClosed) {
+      // Move user to ClosedUser
+      const closedUser = new ClosedUser({
+        ...user.toObject(),
+        isClosed: true
+      });
+      await closedUser.save();
+
+      // Fetch activity rows
+      const activities = await Activity.find({ userId: id });
+
+      // Move activities
+      for (const a of activities) {
+        const closedActivity = new ClosedActivity({
+          userId: id,
+          no: a.no,
+          date: a.date,
+          paidAmount: a.paidAmount,
+          paid: a.paid
+        });
+        await closedActivity.save();
+      }
+
+      // Delete activity rows from normal table
+      await Activity.deleteMany({ userId: id });
+
+      // Delete from normal user table
+      await User.findByIdAndDelete(id);
+    }
+
+    res.status(200).json({ message: "User updated", user });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Error updating user" });
+  }
 };
+
+//get by Id 
+const getById = async (req, res) => { 
+  const id = req.params.id; let user; 
+  
+  try{ 
+    user = await User.findById(id); 
+  }catch(err){ 
+    console.log(err); } 
+    
+    //not found 
+    if(!user){ 
+      return res.status(404).json({message: "User Not found"});
+    } 
+    
+    return res.status(200).json({user}); 
+  };
 
 // Delete user details
 const deleteUser = async (req, res) => {
@@ -125,12 +171,11 @@ const uploadDocuments = async (req, res) => {
         }
 
         // Extract file paths
-        const filePaths = req.files.map(file => file.path);
-
+const   fileNames = req.files.map(file => file.filename);
         // Update user document with file paths
         const updated = await User.findByIdAndUpdate(
             userId,
-            { $push: { [fieldName]: { $each: filePaths } } },
+            { $push: { [fieldName]: { $each: fileNames } } },
             { new: true }
         );
 
@@ -138,13 +183,48 @@ const uploadDocuments = async (req, res) => {
             return res.status(404).json({ message: "User not found" });
         }
 
-        console.log(`Uploaded ${filePaths.length} files for user ${userId}, docType: ${docType}`);
+        console.log(`Uploaded ${fileNames.length} files for user ${userId}, type: ${docType}`);
         return res.status(200).json({ message: "Files uploaded successfully", user: updated });
     } catch (err) {
         console.error("Error uploading documents:", err.message);
         return res.status(500).json({ message: "Unable to upload files", error: err.message });
     }
 };
+
+
+
+// DELETE FILE CONTROLLER
+exports.deleteFile = async (req, res) => {
+  try {
+    const { id, docType, index } = req.params;
+
+    const user = await User.findById(id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    // Dynamic field (ex: customerNicDocs)
+    const field = docType + "Docs";
+
+    if (!user[field] || !user[field][index]) {
+      return res.status(404).json({ message: "File not found" });
+    }
+
+    const filePath = path.join(__dirname, "..", "uploads", user[field][index]);
+
+    // Remove file from server
+    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+
+    // Remove from MongoDB array
+    user[field].splice(index, 1);
+    await user.save();
+
+    return res.json({ message: "File deleted successfully" });
+
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Server error", error: err });
+  }
+};
+
 
 exports.getAllUsers = getAllUsers;
 exports.addUsers = addUsers;

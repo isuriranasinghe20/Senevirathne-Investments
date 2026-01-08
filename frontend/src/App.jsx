@@ -13,6 +13,9 @@ import Activity from "./components/Activity/Activity.jsx";
 import ClosedFiles from "./components/ClosedFiles/ClosedFiles.jsx";
 import ClosedUserDetails from "./components/ClosedUserDetails/ClosedUserDetails.jsx";
 import ClosedActivity from "./components/ClosedActivity/ClosedActivity.jsx";
+import Nav from "./components/Nav/Nav.jsx";
+import Dashboard from "./components/Dashboard/Dashboard.jsx";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
   return (
@@ -20,20 +23,26 @@ function App() {
       
       <React.Fragment>
         <Routes>
-          <Route path="/" element={<Home />} /> 
-          <Route path="/mainhome" element={<Home />} />
-          <Route path="/regi" element={<Register />} />
-          <Route path="/log" element={<Login />} />
-          <Route path="/users" element={<Users />} />
-          <Route path="/addUser" element={<AddUser />} />
-          <Route path="/users/:id" element={<UpdateUser />} />
-          <Route path="/user/:id" element={<UserDetails />} />
-          <Route path="/activity/:id" element={<Activity />} />
-          <Route path="/aboutus" element={<AboutUs />} />
-          <Route path="/closedFiles" element={<ClosedFiles />} />
-          <Route path="/closed-user/:id" element={<ClosedUserDetails />} />
-          <Route path="/closed-users/:id/activity" element={<ClosedActivity />} />
-        </Routes>
+          <Route element={
+                  <ProtectedRoute>
+                    <Nav />
+                  </ProtectedRoute>
+            }>
+            <Route path="/users" element={<Users />} />
+            <Route path="/addUser" element={<AddUser />} />
+            <Route path="/users/:id" element={<UpdateUser />} />
+            <Route path="/user/:id" element={<UserDetails />} />
+            <Route path="/activity/:id" element={<Activity />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/closedFiles" element={<ClosedFiles />} />
+            <Route path="/closed-user/:id" element={<ClosedUserDetails />} />
+            <Route path="/closed-users/:id/activity" element={<ClosedActivity />} />
+          </Route>
+            <Route path="/" element={<Login  />} /> 
+            <Route path="/log" element={<Login />} />
+            <Route path="/mainhome" element={<Home />} />
+            <Route path="/regi" element={<Register />} />
+        </Routes>  
       </React.Fragment>
     </div>
   );
