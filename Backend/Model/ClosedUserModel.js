@@ -15,6 +15,7 @@ const ClosedUserSchema = new mongoose.Schema({
   customerType: String,
   status: String,
   isClosed: { type: Boolean, default: true },
+  totalPaid: { type: Number, default: 0 },
 
   // Add document fields
   customerNicDocs: [String],
@@ -24,5 +25,6 @@ const ClosedUserSchema = new mongoose.Schema({
 
   createdAt: { type: Date, default: Date.now }
 });
+
 
 module.exports = mongoose.model("ClosedUser", ClosedUserSchema);

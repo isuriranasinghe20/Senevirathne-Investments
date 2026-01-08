@@ -21,5 +21,18 @@ const getClosedUserById = async (req, res) => {
   }
 };
 
-module.exports = { getAllClosedUsers };
-module.exports.getClosedUserById = getClosedUserById;
+const updateTotalPaid = async (req, res) => {
+  const { id } = req.params;
+  const { totalPaidAmount } = req.body;
+
+  try {
+    await ClosedUser.findByIdAndUpdate(id, { totalPaid: totalPaidAmount });
+    res.status(200).json({ message: "Total paid amount updated successfully" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+module.exports = { getAllClosedUsers, getClosedUserById, updateTotalPaid };
+
+
