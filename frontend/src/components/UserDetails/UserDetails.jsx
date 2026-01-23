@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../../utils/api";
 import { useParams, useNavigate } from "react-router-dom";
 import { FcViewDetails } from "react-icons/fc";
 import { RiDeleteBin6Fill } from "react-icons/ri";
@@ -23,7 +23,7 @@ function UserDetails() {
 
   const fetchUser = async () => {
     try {
-      const res = await axios.get(`http://localhost:5000/users/${id}`);
+      const res = await api.get(`/users/${id}`);
       setUser(res.data.user);
     } catch (err) {
       console.error(err);
@@ -37,7 +37,7 @@ function UserDetails() {
   const deleteHandler = async () => {
     if (window.confirm("Are you sure you want to delete this user?")) {
       try {
-        await axios.delete(`http://localhost:5000/users/${id}`);
+        await api.delete(`/users/${id}`);
         alert("User deleted successfully!");
         navigate("/users");
       } catch (err) {
@@ -54,7 +54,7 @@ function UserDetails() {
     const formData = new FormData();
     Array.from(files).forEach((file) => formData.append("files", file));
 
-    await axios.post(`http://localhost:5000/users/${id}/upload/${type}`, formData, {
+    await api.post(`/users/${id}/upload/${type}`, formData, {
       headers: { "Content-Type": "multipart/form-data" },
     });
 
@@ -63,7 +63,7 @@ function UserDetails() {
 
   const deleteFile = async (type, index) => {
     try {
-      await axios.delete(`http://localhost:5000/users/${id}/delete-file/${type}/${index}`);
+      await api.delete(`/users/${id}/delete-file/${type}/${index}`);
       fetchUser();
     } catch (err) {
       console.error(err);
@@ -80,7 +80,7 @@ function UserDetails() {
       return (
         <div key={index} className="flex items-center gap-2 mb-2">
           <a
-            href={`http://localhost:5000/uploads/${filename}`}
+            href={`${api.defaults.baseURL}/uploads/${filename}`}
             download
             className="text-blue-700 font-medium text-sm hover:underline"
           >

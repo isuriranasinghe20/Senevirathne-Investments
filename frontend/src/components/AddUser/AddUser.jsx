@@ -1,4 +1,4 @@
-import axios from "axios";
+import api from "../../utils/api";
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { IoPersonAddSharp } from "react-icons/io5";
@@ -62,7 +62,7 @@ function AddUser() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const createRes = await axios.post("http://localhost:5000/users", {
+      const createRes = await api.post("/users", {
         ...inputs,
         total: Number(inputs.total),
         installment: Number(inputs.installment),
@@ -93,8 +93,8 @@ function AddUser() {
         const formData = new FormData();
         filesArray.forEach((file) => formData.append("files", file));
 
-        await axios.post(
-          `http://localhost:5000/users/${userId}/upload/${docTypeMap[key]}`,
+        await api.post(
+          `/users/${userId}/upload/${docTypeMap[key]}`,
           formData,
           { headers: { "Content-Type": "multipart/form-data" } }
         );

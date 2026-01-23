@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../../utils/api";
 import { useNavigate } from "react-router-dom";
 import { IoMdAddCircle } from "react-icons/io";
 import { IoSearch } from "react-icons/io5";
@@ -8,7 +8,7 @@ import { BiSort } from "react-icons/bi";
 import { FaUsersCog } from "react-icons/fa";
 
 
-const USERS_URL = "http://localhost:5000/users";
+
 
 function Users() {
   const navigate = useNavigate();
@@ -22,7 +22,7 @@ function Users() {
   useEffect(() => {
     const loadUsers = async () => {
       try {
-        const res = await axios.get(USERS_URL);
+        const res = await api.get('/users');
         const usersData = res.data.users.map(user => ({
           ...user,
           status: user.status || "Moderate", // default if missing

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../../utils/api";
 import { useParams, useNavigate } from "react-router-dom";
 import { FaAddressCard } from "react-icons/fa";
 
@@ -15,8 +15,8 @@ function ClosedUserDetails() {
 
 
   useEffect(() => {
-    axios
-      .get(`http://localhost:5000/closed-users/${id}`)
+    api
+      .get(`/closed-users/${id}`)
       .then((res) => setUser(res.data.user))
       .catch((err) => console.log(err));
   }, [id]);
@@ -109,7 +109,7 @@ function ClosedUserDetails() {
                 user.customerNicDocs.map((file, i) => (
                   <p key={i}>
                     <a
-                      href={`http://localhost:5000/${file}`}
+                      href={`${api.defaults.baseURL}/${file}`}
                       target="_blank"
                       className="hover:underline"
                       rel="noopener noreferrer"
@@ -129,7 +129,7 @@ function ClosedUserDetails() {
                 user.guarantorNicDocs.map((file, i) => (
                   <p key={i}>
                     <a
-                      href={`http://localhost:5000/${file}`}
+                      href={`${api.defaults.baseURL}/${file}`}
                       target="_blank"
                       className="hover:underline"
                       rel="noopener noreferrer"
@@ -149,7 +149,7 @@ function ClosedUserDetails() {
                 user.vehicleBookDocs.map((file, i) => (
                   <p key={i}>
                     <a
-                      href={`http://localhost:5000/${file}`}
+                      href={`${api.defaults.baseURL}/${file}`}
                       target="_blank"
                       className="hover:underline"
                       rel="noopener noreferrer"
@@ -169,7 +169,7 @@ function ClosedUserDetails() {
                 user.vehicleLicenseDocs.map((file, i) => (
                   <p key={i}>
                     <a
-                      href={`http://localhost:5000/${file}`}
+                      href={`${api.defaults.baseURL}/${file}`}
                       target="_blank"
                       className="hover:underline"
                       rel="noopener noreferrer"

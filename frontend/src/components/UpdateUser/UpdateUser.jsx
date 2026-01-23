@@ -1,5 +1,4 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import api from '../../utils/api';
 import { useParams, useNavigate } from 'react-router-dom';
 import { MdEditNote } from "react-icons/md";
 
@@ -40,7 +39,7 @@ function UpdateUser() {
   useEffect(() => {
     const fetchHandler = async () => {
       try {
-        const res = await axios.get(`http://localhost:5000/users/${id}`);
+        const res = await api.get(`/users/${id}`);
         setInputs(res.data.user);
         setOriginalInputs(res.data.user);
       } catch (err) {
@@ -78,7 +77,7 @@ function UpdateUser() {
       return;
     }
     try {
-      await axios.put(`http://localhost:5000/users/${id}`, {
+      await api.put(`/users/${id}`, {
         indexNo: String(inputs.indexNo),
         nic: String(inputs.nic),
         name: String(inputs.name),

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../../utils/api";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from "recharts";
 
 function Dashboard() {
@@ -23,32 +23,32 @@ function Dashboard() {
   });
 
   useEffect(() => {
-    axios
-      .get("http://localhost:5000/dashboard/customers/count")
+    api
+      .get("/dashboard/customers/count")
       .then((res) => setActiveCustomerCounts(res.data));
   }, []);
 
   useEffect(() => {
-    axios
-      .get("http://localhost:5000/dashboard/customers/closed/count")
+    api
+      .get("/dashboard/customers/closed/count")
       .then((res) => setClosedCustomerCounts(res.data));
   }, []);
 
   useEffect(() => {
-    axios
-      .get("http://localhost:5000/dashboard/loan/total")
+    api
+      .get("/dashboard/loan/total")
       .then((res) => setTotalLoan(res.data.totalLoan));
   }, []);
 
   useEffect(() => {
-    axios
-      .get("http://localhost:5000/dashboard/closed/total")
+    api
+      .get("/dashboard/closed/total")
       .then((res) => setClosedTotalLoan(res.data.totalAmount));
   }, []);
 
   useEffect(() => {
-    axios
-      .get("http://localhost:5000/dashboard/closed/paid-amount")
+    api
+      .get("/dashboard/closed/paid-amount")
       .then((res) => setClosedTotalPaid(res.data.totalPaid));
   }, []);
 
@@ -61,8 +61,8 @@ function Dashboard() {
   }, [totalLoan, closedTotalLoan]);
 
   const fetchFinancialEntries = () => {
-    axios
-      .get("http://localhost:5000/financial-entries")
+    api
+      .get("/financial-entries")
       .then((res) => setFinancialEntries(res.data.entries))
       .catch((err) => console.error("Error fetching financial entries:", err));
   };
@@ -77,8 +77,8 @@ function Dashboard() {
       return;
     }
 
-    axios
-      .post("http://localhost:5000/financial-entries", {
+    api
+      .post("/financial-entries", {
         date: newEntry.date,
         amount: parseFloat(newEntry.amount)
       })
@@ -96,7 +96,7 @@ function Dashboard() {
   const deleteFinancialEntry = (id) => {
     if (window.confirm("Are you sure you want to delete this entry?")) {
       axios
-        .delete(`http://localhost:5000/financial-entries/${id}`)
+        .delete(`/financial-entries/${id}`)
         .then(() => {
           fetchFinancialEntries();
           alert("Entry deleted successfully!");
