@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react"; 
-import axios from "axios";
+import api from "../../utils/api";
 import { useParams } from "react-router-dom";
 import { FcViewDetails } from "react-icons/fc";
 
@@ -27,8 +27,8 @@ function Activity() {
   );
 
   useEffect(() => {
-    axios
-      .get(`http://localhost:5000/users/${id}`)
+    api
+      .get(`/users/${id}`)
       .then((res) => {
         setUser(res.data.user);
         setStatus(res.data.user.status);
@@ -38,8 +38,8 @@ function Activity() {
   }, [id]);
 
   useEffect(() => {
-    axios
-      .get(`http://localhost:5000/activity/${id}`)
+    api
+      .get(`/activity/${id}`)
       .then((res) => setActivities(res.data))
       .catch((err) => console.log(err));
   }, [id]);
@@ -59,8 +59,8 @@ function Activity() {
   };
 
   const handleSave = () => {
-    axios
-      .post("http://localhost:5000/activity", {
+    api
+      .post("/activity", {
         userId: id,
         ...form,
         paidAmount: Number(form.paidAmount),
@@ -77,8 +77,8 @@ function Activity() {
     setConfirmClose(false);
     setIsClosed(true);
 
-    axios
-      .put(`http://localhost:5000/users/${id}`, {
+    api
+      .put(`/users/${id}`, {
         ...user,
         isClosed: true,
       })
@@ -213,7 +213,7 @@ function Activity() {
         onChange={(e) => {
           const newStatus = e.target.value;
           setStatus(newStatus);
-          axios.put(`http://localhost:5000/users/${id}`, {
+          api.put(`/users/${id}`, {
             ...user,
             status: newStatus,
           });
@@ -330,7 +330,7 @@ function Activity() {
                       <td className="py-2 px-3 text-center space-x-2">
                         <button
                           onClick={() =>
-                            axios.put(`http://localhost:5000/activity/${a._id}`, a)
+                            api.put(`/activity/${a._id}`, a)
                               .then(() => showAlert("Activity updated"))
                           }
                           disabled={isClosed}
@@ -340,7 +340,7 @@ function Activity() {
                         </button>
                         <button
                           onClick={() =>
-                            axios.delete(`http://localhost:5000/activity/${a._id}`)
+                            api.delete(`/activity/${a._id}`)
                               .then(() => setActivities(prev => prev.filter(act => act._id !== a._id)))
                               .then(() => showAlert("Deleted"))
                           }

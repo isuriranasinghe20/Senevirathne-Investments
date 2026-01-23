@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../../utils/api";
 import { useParams } from "react-router-dom";
 import { FaFolderClosed } from "react-icons/fa6";
 
@@ -15,21 +15,21 @@ function ClosedActivity() {
 
 
   useEffect(() => {
-    axios
-      .get(`http://localhost:5000/closed-users/${id}`)
+    api
+      .get(`/closed-users/${id}`)
       .then((res) => setUser(res.data.user))
       .catch((err) => console.log(err));
 
-    axios
-      .get(`http://localhost:5000/closed-activity/${id}`)
+    api
+      .get(`/closed-activity/${id}`)
       .then((res) => setActivities(res.data || []))
       .catch((err) => console.log(err));
   }, [id]);
 
     useEffect(() => {
       if (activities.length > 0) {
-        axios
-          .post(`http://localhost:5000/closed-activity/total/${id}`, {
+        api
+          .post(`/closed-activity/total/${id}`, {
             totalPaidAmount,
           })
           .then((res) => console.log(res.data))

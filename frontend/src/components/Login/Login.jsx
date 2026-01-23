@@ -1,4 +1,4 @@
-import axios from 'axios';
+import api from '../../utils/api';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useContext } from "react";
@@ -43,7 +43,7 @@ function Login() {
   };
 
   const sendRequest = async () => {
-    return await axios.post("http://localhost:5000/log", {
+    return await api.post("/log", {
       identifier: user.identifier,
       password: user.password,
     }).then(res => res.data);

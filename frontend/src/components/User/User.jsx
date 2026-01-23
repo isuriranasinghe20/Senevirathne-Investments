@@ -1,6 +1,6 @@
 import React from 'react'
 import { Link } from 'react-router-dom';
-import axios from 'axios';
+import api from "../../utils/api";
 import { useNavigate } from 'react-router-dom';
 
 function User(props) {
@@ -9,7 +9,7 @@ function User(props) {
   const history = useNavigate();
 
   const deleteHandler = async () => {
-    await axios.delete(`http://localhost:5000/users/${_id}`)
+    await api.delete(`/users/${_id}`)
     .then(res => res.data)
     .then(() => history("/"))
     .then(() => history("/users"));

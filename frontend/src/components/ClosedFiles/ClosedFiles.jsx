@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../../utils/api";
 import { useNavigate } from "react-router-dom";
 import { BiSolidUserDetail } from "react-icons/bi";
 import { IoSearch } from "react-icons/io5";
 import { FiFilter } from "react-icons/fi";
 import { BiSort } from "react-icons/bi";
 
-const CLOSED_USERS_URL = "http://localhost:5000/closed-users";
+
 
 function ClosedFiles() {
   const navigate = useNavigate();
@@ -20,8 +20,8 @@ function ClosedFiles() {
 
   // Fetch closed users
   useEffect(() => {
-    axios
-      .get(CLOSED_USERS_URL)
+    api
+      .get("/closed-users")
       .then((res) => {
         const data = res.data.users || res.data || [];
         setUsers(Array.isArray(data) ? data : []);
